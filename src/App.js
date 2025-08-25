@@ -24,7 +24,8 @@ function App() {
     setSubmitStatus('');
 
     try {
-      const response = await fetch('https://hooks.zapier.com/hooks/catch/24339843/ut78ea3/', {
+      // Use Netlify function to avoid CORS issues
+      const response = await fetch('/.netlify/functions/submit-form', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -32,19 +33,20 @@ function App() {
         body: JSON.stringify({
           name: formData.name,
           email: formData.email,
-          businessName: formData.businessName,
-          timestamp: new Date().toISOString(),
-          source: 'DOJMARK Assets Form'
+          businessName: formData.businessName
         })
       });
 
-      if (response.ok) {
+      const result = await response.json();
+
+      if (response.ok && result.success) {
         setSubmitStatus('success');
         setFormData({ name: '', email: '', businessName: '' });
         alert('Thank you for your submission! We\'ll be in touch soon.');
       } else {
-        throw new Error('Submission failed');
+        throw new Error(result.error || 'Submission failed');
       }
+      
     } catch (error) {
       console.error('Error submitting form:', error);
       setSubmitStatus('error');
